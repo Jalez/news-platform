@@ -1,0 +1,33 @@
+{
+  "name": "ai-news-platform",
+  "version": "1.0.0",
+  "description": "AI-powered news platform with customizable perspectives and analysis",
+  "private": true,
+  "workspaces": [
+    "frontend",
+    "backend",
+    "shared"
+  ],
+  "scripts": {
+    "dev:frontend": "npm run dev --workspace=frontend",
+    "dev:backend": "npm run dev --workspace=backend",
+    "dev:fullstack": "concurrently \"npm run dev:backend\" \"npm run dev:frontend\"",
+    "dev:integrated": "npm run dev:frontend -- --api-mode=real",
+    "test:frontend": "npm run test --workspace=frontend",
+    "test:backend": "npm run test --workspace=backend",
+    "test:api": "npm run test:api --workspace=backend",
+    "test:e2e": "npm run test:e2e --workspace=frontend",
+    "build": "npm run build --workspace=shared && npm run build --workspace=backend && npm run build --workspace=frontend",
+    "lint": "npm run lint --workspaces",
+    "type-check": "npm run type-check --workspaces"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.0",
+    "husky": "^8.0.3",
+    "lint-staged": "^13.2.0"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=9.0.0"
+  }
+}
