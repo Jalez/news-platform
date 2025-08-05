@@ -1,0 +1,647 @@
+openapi: 3.0.3
+info:
+  title: AI News Platform API
+  description: API for AI-powered news platform with customizable perspectives and analysis
+  version: 1.0.0
+  contact:
+    name: AI News Platform Team
+    email: support@ainewsplatform.com
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+
+servers:
+  - url: http://localhost:3000/api
+    description: Development server
+  - url: https://api.ainewsplatform.com
+    description: Production server
+
+tags:
+  - name: Authentication
+    description: User authentication and authorization
+  - name: User Preferences
+    description: User preference management
+  - name: News Topics
+    description: News topic browsing and management
+  - name: Content Generation
+    description: AI content generation endpoints
+  - name: Analysis
+    description: Fact-checking and propaganda detection
+
+paths:
+  # Authentication endpoints
+  /auth/register:
+    post:
+      tags: [Authentication]
+      summary: Register a new user
+      operationId: registerUser
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserRegistration'
+      responses:
+        '201':
+          description: User registered successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+        '400':
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /auth/login:
+    post:
+      tags: [Authentication]
+      summary: Login user
+      operationId: loginUser
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserLogin'
+      responses:
+        '200':
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+        '401':
+          description: Invalid credentials
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  # User preferences endpoints
+  /preferences:
+    get:
+      tags: [User Preferences]
+      summary: Get user preferences
+      operationId: getUserPreferences
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: User preferences retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserPreferences'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+    put:
+      tags: [User Preferences]
+      summary: Update user preferences
+      operationId: updateUserPreferences
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserPreferences'
+      responses:
+        '200':
+          description: Preferences updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserPreferences'
+        '400':
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  # News topics endpoints
+  /news/topics:
+    get:
+      tags: [News Topics]
+      summary: Get current news topics
+      operationId: getNewsTopics
+      parameters:
+        - name: limit
+          in: query
+          description: Number of topics to return
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+        - name: category
+          in: query
+          description: Filter by news category
+          required: false
+          schema:
+            type: string
+            enum: [politics, technology, business, sports, entertainment, health, science]
+      responses:
+        '200':
+          description: News topics retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/NewsTopic'
+
+  # Content generation endpoints
+  /content/generate:
+    post:
+      tags: [Content Generation]
+      summary: Generate AI content for a news topic
+      operationId: generateContent
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ContentGenerationRequest'
+      responses:
+        '200':
+          description: Content generated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GeneratedContent'
+        '400':
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  # Analysis endpoints
+  /analysis/fact-check:
+    post:
+      tags: [Analysis]
+      summary: Perform fact-checking analysis
+      operationId: factCheckContent
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FactCheckRequest'
+      responses:
+        '200':
+          description: Fact-check analysis completed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FactCheckResult'
+
+  /analysis/propaganda-detection:
+    post:
+      tags: [Analysis]
+      summary: Detect propaganda in content
+      operationId: detectPropaganda
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PropagandaDetectionRequest'
+      responses:
+        '200':
+          description: Propaganda detection completed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PropagandaDetectionResult'
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    # Authentication schemas
+    UserRegistration:
+      type: object
+      required: [email, password, username]
+      properties:
+        email:
+          type: string
+          format: email
+          example: user@example.com
+        password:
+          type: string
+          minLength: 8
+          example: securePassword123
+        username:
+          type: string
+          minLength: 3
+          maxLength: 50
+          example: newsreader
+
+    UserLogin:
+      type: object
+      required: [email, password]
+      properties:
+        email:
+          type: string
+          format: email
+          example: user@example.com
+        password:
+          type: string
+          example: securePassword123
+
+    AuthResponse:
+      type: object
+      required: [token, user]
+      properties:
+        token:
+          type: string
+          example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+        user:
+          $ref: '#/components/schemas/User'
+
+    User:
+      type: object
+      required: [id, email, username]
+      properties:
+        id:
+          type: string
+          example: user_123
+        email:
+          type: string
+          format: email
+          example: user@example.com
+        username:
+          type: string
+          example: newsreader
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    # User preferences schemas
+    UserPreferences:
+      type: object
+      properties:
+        perspective:
+          type: string
+          enum: [conservative, liberal, democratic, progressive, neutral]
+          default: neutral
+          example: neutral
+        tone:
+          type: string
+          enum: [formal, casual, analytical, conversational, professional]
+          default: professional
+          example: professional
+        language:
+          type: string
+          enum: [en, es, fr, de, it, pt]
+          default: en
+          example: en
+        aiModel:
+          type: string
+          enum: [openai, anthropic, google, grok, local]
+          default: openai
+          example: openai
+        factCheckingEnabled:
+          type: boolean
+          default: true
+          example: true
+        propagandaDetectionEnabled:
+          type: boolean
+          default: true
+          example: true
+        propagandaSensitivity:
+          type: string
+          enum: [low, medium, high]
+          default: medium
+          example: medium
+        contentFilters:
+          $ref: '#/components/schemas/ContentFilters'
+
+    ContentFilters:
+      type: object
+      properties:
+        includedTopics:
+          type: array
+          items:
+            type: string
+          example: [politics, technology, health]
+        excludedTopics:
+          type: array
+          items:
+            type: string
+          example: [sports, entertainment]
+        includedPeople:
+          type: array
+          items:
+            type: string
+          example: []
+        excludedPeople:
+          type: array
+          items:
+            type: string
+          example: []
+        includedOrganizations:
+          type: array
+          items:
+            type: string
+          example: []
+        excludedOrganizations:
+          type: array
+          items:
+            type: string
+          example: []
+
+    # News schemas
+    NewsTopic:
+      type: object
+      required: [id, title, summary, category]
+      properties:
+        id:
+          type: string
+          example: topic_123
+        title:
+          type: string
+          example: "New AI Breakthrough in Healthcare"
+        summary:
+          type: string
+          example: "Researchers develop AI system for early disease detection"
+        category:
+          type: string
+          enum: [politics, technology, business, sports, entertainment, health, science]
+          example: technology
+        trending:
+          type: boolean
+          example: true
+        publishedAt:
+          type: string
+          format: date-time
+        sources:
+          type: array
+          items:
+            type: string
+          example: ["Reuters", "BBC", "CNN"]
+
+    # Content generation schemas
+    ContentGenerationRequest:
+      type: object
+      required: [topicId]
+      properties:
+        topicId:
+          type: string
+          example: topic_123
+        perspective:
+          type: string
+          enum: [conservative, liberal, democratic, progressive, neutral]
+          example: neutral
+        tone:
+          type: string
+          enum: [formal, casual, analytical, conversational, professional]
+          example: professional
+        language:
+          type: string
+          enum: [en, es, fr, de, it, pt]
+          example: en
+        aiModel:
+          type: string
+          enum: [openai, anthropic, google, grok, local]
+          example: openai
+        includeFactCheck:
+          type: boolean
+          default: false
+          example: true
+        includePropagandaDetection:
+          type: boolean
+          default: false
+          example: true
+
+    GeneratedContent:
+      type: object
+      required: [id, content, metadata]
+      properties:
+        id:
+          type: string
+          example: content_123
+        content:
+          type: string
+          example: "This is the AI-generated article content..."
+        metadata:
+          $ref: '#/components/schemas/ContentMetadata'
+        factCheck:
+          $ref: '#/components/schemas/FactCheckResult'
+        propagandaAnalysis:
+          $ref: '#/components/schemas/PropagandaDetectionResult'
+
+    ContentMetadata:
+      type: object
+      properties:
+        topicId:
+          type: string
+          example: topic_123
+        perspective:
+          type: string
+          example: neutral
+        tone:
+          type: string
+          example: professional
+        language:
+          type: string
+          example: en
+        aiModel:
+          type: string
+          example: openai
+        generatedAt:
+          type: string
+          format: date-time
+        wordCount:
+          type: integer
+          example: 450
+        readingTime:
+          type: integer
+          description: Estimated reading time in minutes
+          example: 2
+
+    # Analysis schemas
+    FactCheckRequest:
+      type: object
+      required: [content]
+      properties:
+        content:
+          type: string
+          example: "This is the content to fact-check..."
+
+    FactCheckResult:
+      type: object
+      properties:
+        overall:
+          $ref: '#/components/schemas/FactCheckScore'
+        claims:
+          type: array
+          items:
+            $ref: '#/components/schemas/FactCheckedClaim'
+
+    FactCheckScore:
+      type: object
+      properties:
+        score:
+          type: number
+          minimum: 0
+          maximum: 1
+          example: 0.85
+        confidence:
+          type: string
+          enum: [low, medium, high]
+          example: high
+        status:
+          type: string
+          enum: [verified, disputed, unverified]
+          example: verified
+
+    FactCheckedClaim:
+      type: object
+      properties:
+        text:
+          type: string
+          example: "The unemployment rate is 3.7%"
+        score:
+          $ref: '#/components/schemas/FactCheckScore'
+        sources:
+          type: array
+          items:
+            $ref: '#/components/schemas/FactCheckSource'
+
+    FactCheckSource:
+      type: object
+      properties:
+        url:
+          type: string
+          format: uri
+          example: "https://example.com/source"
+        title:
+          type: string
+          example: "Bureau of Labor Statistics Report"
+        reliability:
+          type: string
+          enum: [high, medium, low]
+          example: high
+
+    PropagandaDetectionRequest:
+      type: object
+      required: [content]
+      properties:
+        content:
+          type: string
+          example: "This is the content to analyze for propaganda..."
+        sensitivity:
+          type: string
+          enum: [low, medium, high]
+          default: medium
+          example: medium
+
+    PropagandaDetectionResult:
+      type: object
+      properties:
+        overall:
+          $ref: '#/components/schemas/PropagandaScore'
+        techniques:
+          type: array
+          items:
+            $ref: '#/components/schemas/DetectedTechnique'
+
+    PropagandaScore:
+      type: object
+      properties:
+        score:
+          type: number
+          minimum: 0
+          maximum: 1
+          example: 0.3
+        level:
+          type: string
+          enum: [low, medium, high]
+          example: low
+        confidence:
+          type: string
+          enum: [low, medium, high]
+          example: medium
+
+    DetectedTechnique:
+      type: object
+      properties:
+        name:
+          type: string
+          example: "Emotional Appeal"
+        description:
+          type: string
+          example: "Uses emotional language to influence opinion"
+        instances:
+          type: array
+          items:
+            $ref: '#/components/schemas/TechniqueInstance'
+        severity:
+          type: string
+          enum: [low, medium, high]
+          example: medium
+
+    TechniqueInstance:
+      type: object
+      properties:
+        text:
+          type: string
+          example: "This devastating policy will destroy our economy"
+        startPosition:
+          type: integer
+          example: 45
+        endPosition:
+          type: integer
+          example: 89
+        confidence:
+          type: number
+          minimum: 0
+          maximum: 1
+          example: 0.75
+
+    # Error schema
+    Error:
+      type: object
+      required: [message]
+      properties:
+        message:
+          type: string
+          example: "An error occurred"
+        code:
+          type: string
+          example: "VALIDATION_ERROR"
+        details:
+          type: object
+          additionalProperties: true
