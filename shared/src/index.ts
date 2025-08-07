@@ -1,3 +1,4 @@
 // Export all shared types and interfaces
 export * from './types';
-export * from './generated/api-types';
+// TODO: Generate API types from OpenAPI spec
+// export * from './generated/api-types';
