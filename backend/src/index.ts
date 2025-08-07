@@ -3,6 +3,7 @@ import cors from 'cors';
 import helmet from 'helmet';
 import morgan from 'morgan';
 import dotenv from 'dotenv';
+import { connectDB, disconnectDB } from './config/database';
 
 // Load environment variables
 dotenv.config();
@@ -39,10 +40,36 @@ app.use('*', (_req, res) => {
 });
 
 // Start server
-app.listen(PORT, () => {
-  console.log(`🚀 Server running on port ${PORT}`);
-  console.log(`📖 Health check: http://localhost:${PORT}/health`);
-  console.log(`🔗 API: http://localhost:${PORT}/api`);
+const startServer = async () => {
+  try {
+    // Connect to database
+    await connectDB();
+    
+    app.listen(PORT, () => {
+      console.log(`🚀 Server running on port ${PORT}`);
+      console.log(`📖 Health check: http://localhost:${PORT}/health`);
+      console.log(`🔗 API: http://localhost:${PORT}/api`);
+      console.log(`💾 Database: Connected to PostgreSQL`);
+    });
+  } catch (error) {
+    console.error('Failed to start server:', error);
+    process.exit(1);
+  }
+};
+
+// Graceful shutdown
+process.on('SIGTERM', async () => {
+  console.log('SIGTERM received, shutting down gracefully');
+  await disconnectDB();
+  process.exit(0);
 });
+
+process.on('SIGINT', async () => {
+  console.log('SIGINT received, shutting down gracefully');
+  await disconnectDB();
+  process.exit(0);
+});
+
+startServer();
 
 export default app;
