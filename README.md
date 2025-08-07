@@ -23,13 +23,51 @@ This project follows a monorepo structure with:
 
 ## Development Setup
 
+### Option 1: With Docker (Recommended)
+
 ```bash
 # Install dependencies
 npm install
 
+# Start databases with Docker
+docker-compose up -d postgres redis
+
+# Configure environment variables
+cp .env.example .env
+# Default values should work with Docker setup
+
+# Set up database
+npm run db:migrate
+npm run db:seed
+
 # Start development servers
 npm run dev:fullstack
+```
 
+### Option 2: Manual Setup
+
+```bash
+# Install dependencies
+npm install
+
+# Install and configure PostgreSQL and Redis manually
+# See docs/database-setup.md for detailed instructions
+
+# Configure environment variables
+cp .env.example .env
+# Edit .env with your database credentials
+
+# Set up database
+npm run db:migrate
+npm run db:seed
+
+# Start development servers
+npm run dev:fullstack
+```
+
+### Development Commands
+
+```bash
 # Frontend only (with mock API)
 npm run dev:frontend
 
@@ -37,7 +75,11 @@ npm run dev:frontend
 npm run dev:backend
 
 # Run tests
-npm test
+npm run test:backend
+
+# Database operations
+npm run db:migrate
+npm run db:seed
 ```
 
 ## API-First Development
@@ -53,6 +95,7 @@ This project follows an API-first approach with:
 - [Requirements](/.kiro/specs/ai-news-site/requirements.md)
 - [Design Document](/.kiro/specs/ai-news-site/design.md)
 - [Implementation Tasks](/.kiro/specs/ai-news-site/tasks.md)
+- [Database Setup Guide](/docs/database-setup.md)
 
 ## License
 
