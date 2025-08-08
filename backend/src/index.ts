@@ -2,42 +2,60 @@ import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import morgan from 'morgan';
+import rateLimit from 'express-rate-limit';
 import dotenv from 'dotenv';
 import { connectDB, disconnectDB } from './config/database';
+import { validateEnv } from './config';
+import { errorHandler } from './middleware/errorHandler';
+import apiRoutes from './routes';
 
 // Load environment variables
 dotenv.config();
 
+// Validate environment variables
+const config = validateEnv();
+
 const app = express();
-const PORT = process.env.PORT || 3000;
 
-// Middleware
+// Rate limiting
+const limiter = rateLimit({
+  windowMs: config.rateLimitWindowMs,
+  max: config.rateLimitMax,
+  message: {
+    error: 'Too many requests from this IP, please try again later.',
+  },
+});
+
+// Security and middleware
 app.use(helmet());
-app.use(cors());
-app.use(morgan('combined'));
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+app.use(cors({
+  origin: config.corsOrigin,
+  credentials: true,
+}));
+app.use(limiter);
+app.use(morgan(config.nodeEnv === 'production' ? 'combined' : 'dev'));
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
-// Health check endpoint
+// API routes with versioning
+app.use('/api/v1', apiRoutes);
+
+// Legacy health check endpoint for backwards compatibility
 app.get('/health', (_req, res) => {
-  res.json({ status: 'OK', timestamp: new Date().toISOString() });
+  res.redirect('/api/v1/health');
 });
 
-// API routes will be added here
-app.use('/api', (_req, res) => {
-  res.json({ message: 'AI News Platform API - Coming Soon' });
-});
-
-// Error handling middleware
-app.use((err: Error, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
-  console.error(err.stack);
-  res.status(500).json({ message: 'Something went wrong!' });
-});
-
-// 404 handler
+// Catch-all for undefined routes
 app.use('*', (_req, res) => {
-  res.status(404).json({ message: 'Route not found' });
+  res.status(404).json({
+    success: false,
+    error: 'API endpoint not found',
+    message: 'Please check the API documentation for available endpoints.',
+  });
 });
+
+// Error handling middleware (must be last)
+app.use(errorHandler);
 
 // Start server
 const startServer = async () => {
@@ -69,6 +87,15 @@ process.on('SIGINT', async () => {
   await disconnectDB();
   process.exit(0);
 });
+
+if (require.main === module) {
+  app.listen(config.port, () => {
+    console.log(`🚀 Server running on port ${config.port}`);
+    console.log(`📖 Environment: ${config.nodeEnv}`);
+    console.log(`🔗 Health check: http://localhost:${config.port}/api/v1/health`);
+    console.log(`🔗 API: http://localhost:${config.port}/api/v1`);
+  });
+}
 
 startServer();
 
