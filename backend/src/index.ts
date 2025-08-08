@@ -4,6 +4,7 @@ import helmet from 'helmet';
 import morgan from 'morgan';
 import rateLimit from 'express-rate-limit';
 import dotenv from 'dotenv';
+import { connectDB, disconnectDB } from './config/database';
 import { validateEnv } from './config';
 import { errorHandler } from './middleware/errorHandler';
 import apiRoutes from './routes';
@@ -57,6 +58,36 @@ app.use('*', (_req, res) => {
 app.use(errorHandler);
 
 // Start server
+const startServer = async () => {
+  try {
+    // Connect to database
+    await connectDB();
+    
+    app.listen(PORT, () => {
+      console.log(`🚀 Server running on port ${PORT}`);
+      console.log(`📖 Health check: http://localhost:${PORT}/health`);
+      console.log(`🔗 API: http://localhost:${PORT}/api`);
+      console.log(`💾 Database: Connected to PostgreSQL`);
+    });
+  } catch (error) {
+    console.error('Failed to start server:', error);
+    process.exit(1);
+  }
+};
+
+// Graceful shutdown
+process.on('SIGTERM', async () => {
+  console.log('SIGTERM received, shutting down gracefully');
+  await disconnectDB();
+  process.exit(0);
+});
+
+process.on('SIGINT', async () => {
+  console.log('SIGINT received, shutting down gracefully');
+  await disconnectDB();
+  process.exit(0);
+});
+
 if (require.main === module) {
   app.listen(config.port, () => {
     console.log(`🚀 Server running on port ${config.port}`);
@@ -65,5 +96,7 @@ if (require.main === module) {
     console.log(`🔗 API: http://localhost:${config.port}/api/v1`);
   });
 }
+
+startServer();
 
 export default app;
