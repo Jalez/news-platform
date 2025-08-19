@@ -63,10 +63,10 @@ const startServer = async () => {
     // Connect to database
     await connectDB();
     
-    app.listen(PORT, () => {
-      console.log(`🚀 Server running on port ${PORT}`);
-      console.log(`📖 Health check: http://localhost:${PORT}/health`);
-      console.log(`🔗 API: http://localhost:${PORT}/api`);
+    app.listen(config.port, () => {
+      console.log(`🚀 Server running on port ${config.port}`);
+      console.log(`📖 Health check: http://localhost:${config.port}/health`);
+      console.log(`🔗 API: http://localhost:${config.port}/api`);
       console.log(`💾 Database: Connected to PostgreSQL`);
     });
   } catch (error) {
@@ -89,14 +89,7 @@ process.on('SIGINT', async () => {
 });
 
 if (require.main === module) {
-  app.listen(config.port, () => {
-    console.log(`🚀 Server running on port ${config.port}`);
-    console.log(`📖 Environment: ${config.nodeEnv}`);
-    console.log(`🔗 Health check: http://localhost:${config.port}/api/v1/health`);
-    console.log(`🔗 API: http://localhost:${config.port}/api/v1`);
-  });
+  startServer();
 }
-
-startServer();
 
 export default app;
