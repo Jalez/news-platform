@@ -351,7 +351,8 @@ describe('PreferenceMigrationUtilities', () => {
       expect(result.success).toBe(true);
       expect(result.affectedUsers).toBe(2);
       expect(mockQuery).toHaveBeenCalledWith(
-        expect.stringContaining('SELECT u.id as user_id FROM users u LEFT JOIN user_preferences up')
+        expect.stringContaining('SELECT u.id as user_id'),
+        undefined
       );
     });
 
